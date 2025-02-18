@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renk Reaksiyon Antrenmanı</title>
+    <!-- PWA Manifest ve Theme Color -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #settings {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        #settings input {
+            padding: 5px;
+            font-size: 16px;
+            width: 120px;
+        }
+        #countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            font-weight: bold;
+            z-index: 10;
+            display: none;
+        }
+        #fullScreenColor {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 5;
+        }
+        #startButton {
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #colorPicker {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .color-box {
+            width: 100px;
+            height: 100px;
+            border: 2px solid black;
+            cursor: pointer;
+            position: relative;
+        }
+        .color-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        #colorInstruction {
+            color: #666;
+            margin: 10px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Renk Reaksiyon Antrenmanı</h1>
+    <p>Renkler belirli bir sırayla gösterilecek. Sporcu olarak doğru renge hareket edip başlangıç noktasına dönün!</p>
+    
+    <div id="settings">
+        <label for="colorCount">Renk Sayısı:</label>
+        <input type="number" id="colorCount" min="1" max="50" value="4">
+        <label for="displayTime">Görüntülenme Süresi (sn):</label>
+        <input type="number" id="displayTime" step="0.1" min="0.5" max="5" value="1">
+        <label for="transitionTime">Geçiş Süresi (sn):</label>
+        <input type="number" id="transitionTime" step="0.1" min="0.5" max="5" value="1">
+    </div>
+
+    <div id="colorInstruction">Renk değiştirmek için lütfen kutulara tıklayınız</div>
+    
+    <div id="colorPicker">
+        <div class="color-box" style="background-color: purple;">
+            <input type="color" class="color-input" value="#800080">
+        </div>
+        <div class="color-box" style="background-color: yellow;">
+            <input type="color" class="color-input" value="#FFFF00">
+        </div>
+        <div class="color-box" style="background-color: blue;">
+            <input type="color" class="color-input" value="#0000FF">
+        </div>
+        <div class="color-box" style="background-color: red;">
+            <input type="color" class="color-input" value="#FF0000">
+        </div>
+    </div>
+
+    <button id="startButton">Başla</button>
+    <div id="countdown"></div>
+    <div id="fullScreenColor"></div>
+
+    <script>
+        // Ses Yönetimi Sistemi
+        class SoundManager {
+            constructor() {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            createBeep(frequency = 1000, duration = 0.1) {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                oscillator.type = "square";
+                oscillator.frequency.value = frequency;
+                gainNode.gain.value = 0.15;
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), duration * 1000);
+            }
+
+            countdownBeep() { this.createBeep(800, 0.1); }      // Geri sayım bip sesi
+            startBeep() { this.createBeep(1200, 0.3); }         // Başla bip sesi
+            colorBeep() { this.createBeep(1000, 0.05); }         // Renk bip sesi
+            finishBeep() { this.createBeep(600, 1); }           // Çalışma sonu bip sesi
+        }
+
+        // Uygulama Verileri
+        const colors = [
+            { code: "purple" },
+            { code: "yellow" },
+            { code: "blue" },
+            { code: "red" }
+        ];
+        let soundManager;
+
+        // Renk Seçicileri Yönetimi
+        document.querySelectorAll('.color-input').forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                colors[index].code = e.target.value;
+                input.parentElement.style.backgroundColor = e.target.value;
+            });
+        });
+
+        // Eğitim Başlatma
+        async function startTraining() {
+            document.getElementById("colorPicker").style.display = "none";
+            document.getElementById("startButton").style.display = "none";
+            document.getElementById("settings").style.display = "none";
+            document.getElementById("colorInstruction").style.display = "none";
+
+            // Geri Sayım
+            const countdownElement = document.getElementById("countdown");
+            for(let i=3; i>0; i--) {
+                countdownElement.textContent = i;
+                countdownElement.style.display = "block";
+                soundManager.countdownBeep();
+                await new Promise(r => setTimeout(r, 1000));
+                countdownElement.style.display = "none";
+            }
+            countdownElement.textContent = "BAŞLA!";
+            countdownElement.style.display = "block";
+            soundManager.startBeep();
+            await new Promise(r => setTimeout(r, 1000));
+            countdownElement.style.display = "none";
+
+            // Renk Dizisi Oluşturma
+            const sequence = Array.from({length: document.getElementById("colorCount").value}, 
+                () => colors[Math.floor(Math.random() * colors.length)]);
+
+            // Renk Gösterim Döngüsü
+            const displayTime = document.getElementById("displayTime").value * 1000;
+            const transitionTime = document.getElementById("transitionTime").value * 1000;
+            const fullScreen = document.getElementById("fullScreenColor");
+            
+            for(const color of sequence) {
+                fullScreen.style.backgroundColor = color.code;
+                fullScreen.style.display = "block";
+                soundManager.colorBeep();
+                await new Promise(r => setTimeout(r, displayTime));
+                
+                fullScreen.style.display = "none";
+                await new Promise(r => setTimeout(r, transitionTime));
+            }
+            
+            // Çalışma Sonu
+            soundManager.finishBeep(); // 1 saniyelik çalışma sonu bip sesi
+            alert("Eğitim tamamlandı!");
+            location.reload();
+        }
+
+        // Uygulama Başlatıldığında
+        window.onload = () => {
+            soundManager = new SoundManager();
+            document.getElementById("startButton").addEventListener("click", startTraining);
+
+            // Service Worker Kaydı
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            }
+        };
+    </script>
+</body>
+</html>
