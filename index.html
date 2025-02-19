@@ -84,6 +84,28 @@
             background-repeat: no-repeat;
             background-position-x: center;
         }
+        #connectedUsers {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #connectedUsers h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        #connectedUsers ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #connectedUsers li {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -120,6 +142,12 @@
     <div id="countdown"></div>
     <div id="fullScreenColor"></div>
 
+    <!-- Bağlı telefonları gösteren kutu -->
+    <div id="connectedUsers">
+        <h3>Bağlı Telefonlar</h3>
+        <ul id="userList"></ul>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
@@ -143,6 +171,23 @@
 
         set(userRef, { status: "connected" }).then(() => {
             console.log("Kullanıcı kaydedildi:", userId);
+        });
+
+        // Bağlı kullanıcıları dinleme
+        const usersRef = ref(database, 'users/');
+        const userListElement = document.getElementById("userList");
+
+        onValue(usersRef, (snapshot) => {
+            const users = snapshot.val();
+            userListElement.innerHTML = ""; // Listeyi temizle
+
+            if (users) {
+                Object.keys(users).forEach((user) => {
+                    const li = document.createElement("li");
+                    li.textContent = `Telefon ID: ${user}`;
+                    userListElement.appendChild(li);
+                });
+            }
         });
 
         // Ses Yönetimi Sistemi
