@@ -1,6 +1,9 @@
 const CACHE_NAME = 'reactiongame-v1';
 const ASSETS = [
-  '/reactiongame.html',
+  '/',
+  '/index.html',
+  '/style.css',
+  '/script.js',
   '/manifest.json',
   '/icon-192x192.png',
   '/icon-512x512.png'
