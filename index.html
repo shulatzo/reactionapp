@@ -17,15 +17,16 @@
             overflow: hidden;
         }
         #settings {
-            display: flex;
+            display:contents;
             justify-content: center;
             gap: 10px;
             margin-top: 20px;
         }
         #settings input {
             padding: 5px;
+            border-radius: 10px;
             font-size: 16px;
-            width: 120px;
+            width: 50px;
         }
         #countdown {
             position: absolute;
@@ -51,6 +52,7 @@
             font-size: 20px;
             cursor: pointer;
             margin-top: 20px;
+            border-radius: 10px;
         }
         #colorPicker {
             display: flex;
@@ -91,8 +93,8 @@
 <body>
     </div>
     <h1>Renk Reaksiyon Antrenmanı</h1>
-    <p>Renkler belirli bir sırayla gösterilecek. Sporcu olarak doğru renge hareket edip başlangıç noktasına dönün!</p>
-    
+    <p>Renkler belirsiz bir sırayla gösterilecek. Doğru renge hareket edip başlangıç noktasına dön!</p>
+
     <div id="settings">
         <label for="colorCount">Renk Sayısı:</label>
         <input type="number" id="colorCount" min="1" max="50" value="4">
@@ -174,6 +176,8 @@
 
             // Geri Sayım
             const countdownElement = document.getElementById("countdown");
+            
+            
             for(let i=3; i>0; i--) {
                 countdownElement.textContent = i;
                 countdownElement.style.display = "block";
